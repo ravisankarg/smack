@@ -33,7 +33,7 @@ int main(int argc, char **argv)
 	}
 
 	if (apply_cipso(argv[1])) {
-		perror("Failure to apply cipso : ");
+		perror("apply_cispo");
 		exit(1);
 	}
 
