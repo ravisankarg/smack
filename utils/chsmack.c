@@ -36,6 +36,42 @@ static inline int leads(char *in, char *lead)
 {
 	return (strncmp(in, lead, strlen(lead)) == 0);
 }
+/*
+Label rules
+
+Smack labels are ASCII character strings,
+1. one to twenty-three characters in length.
+2. cannot contain unprintable characters, the "/" (slash),
+	 the "\" (backslash), the "'" (quote) and '"' (double-quote) characters.
+3. cannot begin with a '-', which is reserved for special options.
+*/
+
+static int rules(const char *label)
+{
+	int idx, len, ch;
+
+	idx = 0;
+	len = strlen(label);
+
+	if (len > LSIZE)
+		return 1;
+	else {
+		if (label[idx] != '-') {
+			while (idx < len) {
+				ch = label[idx++];
+				if (ch == 0x2F || ch == 0x5C || ch == 0x27 ||
+					 ch == 0x2A || ch == 0x7F || ch < 0x1F)
+					break;
+			}
+			if (idx < len)
+				return 1;
+			else
+				return 0;
+		}
+		else
+			return 1;
+	}
+}
 
 int
 main(int argc, char *argv[])
@@ -82,19 +118,20 @@ main(int argc, char *argv[])
 		fprintf(stderr, "No files specified.\n");
 		exit(1);
 	}
-	if (access != NULL && strlen(access) > LSIZE) {
-		fprintf(stderr, "Access label \"%s\" exceeds %d characters.\n",
-			access, LSIZE);
+
+	if (access != NULL && rules(access)) {
+		fprintf(stderr, "Access label \"%s\" violates SMACK label rules.\n",
+			access);
 		exit(1);
 	}
-	if (mm != NULL && strlen(mm) > LSIZE) {
-		fprintf(stderr, "mmap label \"%s\" exceeds %d characters.\n",
-			mm, LSIZE);
+	if (mm != NULL && rules(mm)) {
+		fprintf(stderr, "mmap label \"%s\" violates SMACK label rules.\n",
+			mm);
 		exit(1);
 	}
-	if (execute != NULL && strlen(execute) > LSIZE) {
-		fprintf(stderr, "execute label \"%s\" exceeds %d characters.\n",
-			execute, LSIZE);
+	if (execute != NULL && rules(execute)) {
+		fprintf(stderr, "execute label \"%s\" violates SMACK label rules.\n",
+			execute);
 		exit(1);
 	}
 	for (; argi < argc; argi++) {
